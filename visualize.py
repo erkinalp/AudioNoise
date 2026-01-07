@@ -61,6 +61,12 @@ class WaveformVisualizer:
         # Scroll Zoom setup
         self.fig.canvas.mpl_connect('scroll_event', self.on_scroll)
 
+        # Enable "Zoom to Rectangle" by default
+        try:
+            self.fig.canvas.toolbar.zoom()
+        except AttributeError:
+            pass
+
         # Initial View
         self.update_view(0, INITIAL_WINDOW_SEC)
 
@@ -120,19 +126,15 @@ class WaveformVisualizer:
 
         # Tight Y-axis scaling logic
         if has_data and max_y > min_y:
-            # Use strict min/max from data, but keep it symmetric around 0 if appropriate?
-            # User said: "limit the zooming in the Y direction to the currently visible sample values"
-            # Strict limits:
-            limit_span = max_y - min_y
-            # Add a tiny bit of padding (e.g. 5%) so lines don't touch the frame edges
-            padding = limit_span * 0.05
+            # Symmetric zoom centered at 0
+            max_val = max(abs(min_y), abs(max_y))
 
-            # If the signal is essentially silence, we might have tiny values.
-            # Avoid collapsing to 0 range.
-            if limit_span < 1e-6:
-                padding = 0.01
+            if max_val < 1e-6:
+                max_val = 0.01
+            else:
+                max_val *= 1.05
 
-            self.ax.set_ylim(min_y - padding, max_y + padding)
+            self.ax.set_ylim(-max_val, max_val)
         else:
              # Default fallback if no data
              self.ax.set_ylim(-1.0, 1.0)
