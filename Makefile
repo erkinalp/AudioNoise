@@ -52,4 +52,4 @@ gensin.h: gensin
 
 gensin: gensin.c
 
-.PHONY: default play output.raw $(effects) SeymourDuncan visualize
+.PHONY: default play $(effects) SeymourDuncan visualize
