@@ -17,7 +17,7 @@ void phaser_init(float pot1, float pot2, float pot3, float pot4)
 
 	pot3 = 2*pot3;
 	phaser.center_f = linear(pot3*pot3*pot3, 50, 880);	// 50Hz .. 1kHz
-	phaser.octaves = 2;
+	phaser.octaves = 4;
 	phaser.Q = linear(pot4, 0.25, 2);
 
 	fprintf(stderr, "phaser:");
