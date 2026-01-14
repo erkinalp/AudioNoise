@@ -83,6 +83,20 @@ int main(int argc, char **argv)
 		UPDATE(effect_delay);
 		float out = eff->step(in);
 		sample = (int)(out * 0x80000000);
+
+		// Check for overflow on float->int conversion
+		//
+		// Note that this won't catch overflows
+		// due to out being outside [-2,2], we
+		// assume the effects are at least
+		// being that careful
+		if (out >= 0) {
+			if (sample < 0)
+				sample = 0x7fffffff;
+		} else {
+			if (sample > 0)
+				sample = 0x80000000;
+		}
 		if (fwrite(&sample, 4, 1, stdout) != 1)
 			return 1;
 	}
