@@ -10,9 +10,9 @@ static inline void flanger_init(float pot1, float pot2, float pot3, float pot4)
 
 	fprintf(stderr, "flanger:");
 	fprintf(stderr, " freq=%g Hz", pot1*pot1*10);
-	fprintf(stderr, " delay=%g ms", pot2*10);
+	fprintf(stderr, " delay=%g ms", pot2*4);
 	fprintf(stderr, " depth=%g", pot3);
-	fprintf(stderr, " feedback=%g\n", pot1*pot1*10);
+	fprintf(stderr, " feedback=%g\n", pot4);
 }
 
 static inline float flanger_step(float in)
