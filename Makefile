@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -O2 -ffast-math -fsingle-precision-constant # -Wdouble-promotion -Wfloat-conversion
+CFLAGS = -Wall -O2
 LDLIBS = -lm
 
 PYTHON = python3
@@ -33,6 +33,7 @@ $(effects): input.raw convert
 	ffmpeg -y -v fatal -f s32le -ar 48000 -ac 1 -i output.raw -f mp3 $@.mp3
 	$(PLAY) < output.raw
 
+convert.o: CFLAGS += -ffast-math -fsingle-precision-constant # -Wdouble-promotion -Wfloat-conversion
 convert.o: $(HEADERS)
 
 convert: convert.o
@@ -57,10 +58,16 @@ gensin.h: gensin
 
 gensin: gensin.c
 
-test: tests/lfo_verify
-	tests/lfo_verify
+test: test-sincos test-lfo
 
 tests/lfo_verify: tests/lfo_verify.o
 tests/lfo_verify.o: $(HEADERS)
+test-lfo: tests/lfo_verify
+	tests/lfo_verify
 
-.PHONY: default play $(effects) SeymourDuncan visualize
+tests/sincos: tests/sincos.o
+tests/sincos.o: $(HEADERS)
+test-sincos: tests/sincos
+	tests/sincos
+
+.PHONY: default play $(effects) SeymourDuncan visualize test-lfo test-sincos
