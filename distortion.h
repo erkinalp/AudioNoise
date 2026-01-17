@@ -12,33 +12,36 @@ static struct {
 	struct biquad tone_filter;
 } distortion;
 
-static inline void distortion_init(float pot1, float pot2, float pot3, float pot4)
+static inline void distortion_describe(float pot[4])
 {
-	// pot1: drive/gain (1x - 50x)
-	distortion.drive = 1.0f + pot1 * 49.0f;
+	const char *mode_names[] = { "soft", "hard", "asymmetric" };
 
-	// pot2: tone (roll off high frequencies, 1kHz - 10kHz)
-	distortion.tone_freq = 1000 + pot2 * 9000;
+	fprintf(stderr, " drive=%gx", linear(pot[0], 1, 50));
+	fprintf(stderr, " tone=%g Hz", pot_frequency(pot[1]));
+	fprintf(stderr, " level=%g", pot[2]);
+	fprintf(stderr, " mode=%s\n", mode_names[distortion.mode]);
+}
+
+static inline void distortion_init(float pot[4])
+{
+	// pot[0]: drive/gain (1x - 50x)
+	distortion.drive = linear(pot[0], 1, 50);
+
+	// pot[1]: tone (roll off high frequencies, 220Hz - 6.5kHz)
+	distortion.tone_freq = pot_frequency(pot[1]);
 	biquad_lpf(&distortion.tone_filter, distortion.tone_freq, 0.707f);
 
-	// pot3: output level (0 - 100%)
-	distortion.level = pot3;
+	// pot[2]: output level (0 - 100%)
+	distortion.level = pot[2];
 
-	// pot4: mode selection
-	if (pot4 < 0.33f)
+	// pot[3]: mode selection
+	if (pot[3] < 0.33f)
 		distortion.mode = 0;  // soft clip (tanh)
-	else if (pot4 < 0.66f)
+	else if (pot[3] < 0.66f)
 		distortion.mode = 1;  // hard clip
 	else
 		distortion.mode = 2;  // asymmetric
 
-	const char *mode_names[] = { "soft", "hard", "asymmetric" };
-
-	fprintf(stderr, "distortion:");
-	fprintf(stderr, " drive=%gx", distortion.drive);
-	fprintf(stderr, " tone=%g Hz", distortion.tone_freq);
-	fprintf(stderr, " level=%g", pot3);
-	fprintf(stderr, " mode=%s\n", mode_names[distortion.mode]);
 }
 
 // Soft clipping using tanh approximation

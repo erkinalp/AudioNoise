@@ -5,24 +5,32 @@ struct {
 	float center_f, octaves, Q, feedback;
 } phaser;
 
-void phaser_init(float pot1, float pot2, float pot3, float pot4)
+void phaser_describe(float pot[4])
 {
-	float ms = cubic(pot1, 25, 2000);		// 25ms .. 2s
-	set_lfo_ms(&phaser.lfo, ms);
-	phaser.feedback = linear(pot2, 0, 0.75);
+	float ms = cubic(pot[0], 25, 2000);
+	float feedback = linear(pot[1], 0, 0.75);
+	float f = pot_frequency(pot[2]);
+	float octaves = 0.5;
+	float Q = linear(pot[3], 0.25, 2);
 
-	phaser.center_f = pot_frequency(pot3);		// 220Hz .. 6.5kHz
-	phaser.octaves = 0.5;				// 155Hz .. 9kHz
-	phaser.Q = linear(pot4, 0.25, 2);
+	float lo = pow2(-octaves) * f;
+	float hi = pow2( octaves) * f;
 
-	float lo = pow2(-phaser.octaves) * phaser.center_f;
-	float hi = pow2( phaser.octaves) * phaser.center_f;
-
-	fprintf(stderr, "phaser:");
 	fprintf(stderr, " lfo=%g ms", ms);
-	fprintf(stderr, " f=%.0f (%.0f - %.0f) Hz", phaser.center_f, lo, hi);
-	fprintf(stderr, " feedback=%g", phaser.feedback);
-	fprintf(stderr, " Q=%g\n", phaser.Q);
+	fprintf(stderr, " f=%.0f (%.0f - %.0f) Hz", f, lo, hi);
+	fprintf(stderr, " feedback=%g", feedback);
+	fprintf(stderr, " Q=%g\n", Q);
+}
+
+void phaser_init(float pot[4])
+{
+	float ms = cubic(pot[0], 25, 2000);		// 25ms .. 2s
+	set_lfo_ms(&phaser.lfo, ms);
+	phaser.feedback = linear(pot[1], 0, 0.75);
+
+	phaser.center_f = pot_frequency(pot[2]);		// 220Hz .. 6.5kHz
+	phaser.octaves = 0.5;				// 155Hz .. 9kHz
+	phaser.Q = linear(pot[3], 0.25, 2);
 }
 
 float phaser_step(float in)

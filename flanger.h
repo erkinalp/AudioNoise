@@ -1,18 +1,19 @@
 // Flanger effect based on the MIT-licensed DaisySP library by Electrosmith
 // which in turn seems to be based on Soundpipe by Paul Batchelor
-
-static inline void flanger_init(float pot1, float pot2, float pot3, float pot4)
+static inline void flanger_describe(float pot[4])
 {
-	effect_set_lfo(pot1*pot1*10);	// lfo = 0 .. 10Hz
-	effect_set_delay(pot2 * 4);	// delay = 0 .. 4 ms
-	effect_set_depth(pot3);		// depth = 0 .. 100%
-	effect_set_feedback(pot4);	// feedback = 0 .. 100%
+	fprintf(stderr, " freq=%g Hz", pot[0]*pot[0]*10);
+	fprintf(stderr, " delay=%g ms", pot[1]*4);
+	fprintf(stderr, " depth=%g", pot[2]);
+	fprintf(stderr, " feedback=%g\n", pot[3]);
+}
 
-	fprintf(stderr, "flanger:");
-	fprintf(stderr, " freq=%g Hz", pot1*pot1*10);
-	fprintf(stderr, " delay=%g ms", pot2*4);
-	fprintf(stderr, " depth=%g", pot3);
-	fprintf(stderr, " feedback=%g\n", pot4);
+static inline void flanger_init(float pot[4])
+{
+	effect_set_lfo(pot[0]*pot[0]*10);	// lfo = 0 .. 10Hz
+	effect_set_delay(pot[1] * 4);		// delay = 0 .. 4 ms
+	effect_set_depth(pot[2]);		// depth = 0 .. 100%
+	effect_set_feedback(pot[3]);		// feedback = 0 .. 100%
 }
 
 static inline float flanger_step(float in)

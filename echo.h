@@ -1,16 +1,18 @@
 //
 // Minimal echo effect
 //
-static inline void echo_init(float pot1, float pot2, float pot3, float pot4)
+static inline void echo_describe(float pot[4])
 {
-	effect_set_delay(pot1 * 1000);	// delay = 0 .. 1s
-	effect_set_lfo_ms(pot3*4);	// LFO = 0 .. 4ms
-	effect_set_feedback(pot4);	// feedback = 0 .. 100%
+	fprintf(stderr, " delay=%g ms", pot[0] * 1000);
+	fprintf(stderr, " lfo=%g ms", pot[2]*4);
+	fprintf(stderr, " feedback=%g\n", pot[3]);
+}
 
-	fprintf(stderr, "echo:");
-	fprintf(stderr, " delay=%g ms", pot1 * 1000);
-	fprintf(stderr, " lfo=%g ms", pot3*4);
-	fprintf(stderr, " feedback=%g\n", pot4);
+static inline void echo_init(float pot[4])
+{
+	effect_set_delay(pot[0] * 1000);	// delay = 0 .. 1s
+	effect_set_lfo_ms(pot[2]*4);	// LFO = 0 .. 4ms
+	effect_set_feedback(pot[3]);	// feedback = 0 .. 100%
 }
 
 static inline float echo_step(float in)

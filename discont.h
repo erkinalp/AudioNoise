@@ -14,30 +14,25 @@ struct {
 #define DISCONT_SHIFT 12
 #define DISCONT_STEPS (1 << DISCONT_SHIFT)
 
-#define SEMITONE_MULT (1.0594630943592953f)
+void discont_describe(float pot[4])
+{
+	fprintf(stderr, " tonestep=%g\n", pow2(linear(pot[0], -1, 1)));
+}
 
-#define FIFTH ((float)3/2)
-#define FOURTH ((float)4/3)
-
-#define TONESTEPS 100
-
-void discont_init(float pot1, float pot2, float pot3, float pot4)
+void discont_init(float pot[4])
 {
 	// Which direction do we walk the samples?
 	// Walking backwards lowers the pitch
 	// Walking forwards raises the pitch
 	// Staying at the same delay keeps the pitch the same
 	//
-	float step = pow2(linear(pot1, -1, 1));	//  0.5 .. 2
+	float step = pow2(linear(pot[0], -1, 1));	//  0.5 .. 2
 	disco.step = step - 1;			// -0.5 .. 1
 
 	// We set the LFO to be 2*DISCONT_STEPS
 	// but then we basically just use half
 	// of it twice
 	disco.lfo.step = 1 << (31-DISCONT_SHIFT);
-
-	fprintf(stderr, "discont:");
-	fprintf(stderr, " tonestep=%g\n", step);
 }
 
 // i is discontinuous when sin**2 is 0

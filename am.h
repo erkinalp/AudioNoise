@@ -9,23 +9,20 @@ static struct {
 	float depth, volume;
 } am;
 
-static inline void am_init(float pot1, float pot2, float pot3, float pot4)
+static inline void am_describe(float pot[4])
 {
-	float freq, lfo;
+	fprintf(stderr, " volume=%g", pot[0]);
+	fprintf(stderr, " freq=%.0f Hz", pot_frequency(pot[1]));
+	fprintf(stderr, " depth=%g", pot[2]);
+	fprintf(stderr, " lfo=%g Hz\n", 1 + 10*pot[3]);
+}
 
-	am.volume = pot1;
-	freq = pot_frequency(pot2);
-	set_lfo_freq(&am.base_lfo, freq);
-
-	am.depth = pot3;
-	lfo = 1 + 10*pot4;			// 1..11 Hz
-	set_lfo_freq(&am.mod_lfo, lfo);
-
-	fprintf(stderr, "am:");
-	fprintf(stderr, " volume=%g", am.volume);
-	fprintf(stderr, " freq=%.0f Hz", freq);
-	fprintf(stderr, " depth=%g", am.depth);
-	fprintf(stderr, " lfo=%g Hz\n", lfo);
+static inline void am_init(float pot[4])
+{
+	am.volume = pot[0];
+	set_lfo_freq(&am.base_lfo, pot_frequency(pot[1]));
+	am.depth = pot[2];
+	set_lfo_freq(&am.mod_lfo, 1 + 10*pot[3]); // 1..11 Hz
 }
 
 static inline float am_step(float in)

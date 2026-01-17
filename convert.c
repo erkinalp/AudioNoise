@@ -22,13 +22,15 @@
 #include "discont.h"
 #include "distortion.h"
 
-static void magnitude_init(float pot1, float pot2, float pot3, float pot4) {}
+static void magnitude_describe(float pot[4]) { fprintf(stderr, "\n"); }
+static void magnitude_init(float pot[4]) {}
 static float magnitude_step(float in) { return u32_to_fraction(magnitude); }
 
-#define EFF(x) { #x, x##_init, x##_step }
+#define EFF(x) { #x, x##_describe, x##_init, x##_step }
 struct effect {
 	const char *name;
-	void (*init)(float,float,float,float);
+	void (*describe)(float[4]);
+	void (*init)(float[4]);
 	float (*step)(float);
 } effects[] = {
 	EFF(discont),
@@ -45,11 +47,32 @@ struct effect {
 
 #define UPDATE(x) x += 0.001 * (target_##x - x)
 
+#define BLOCKSIZE 200
+static inline int make_one_noise(int in, int out, struct effect *eff)
+{
+	s32 input[BLOCKSIZE], output[BLOCKSIZE];
+	int nr = read(in, input, sizeof(input));
+	if (nr <= 0)
+		return nr;
+
+	nr /= 4;
+	for (int i = 0; i < nr; i++) {
+		UPDATE(effect_delay);
+
+		float val = process_input(input[i]);
+
+		val = eff->step(val);
+
+		output[i] = process_output(val);
+	}
+	write(out, output, nr * 4);
+	return nr * 4;
+}
+
 int main(int argc, char **argv)
 {
 	float pot[4];
 	struct effect *eff = &effects[0];
-	s32 sample;
 
 	if (argc < 6)
 		return 1;
@@ -64,20 +87,13 @@ int main(int argc, char **argv)
 	for (int i = 0; i < 4; i++)
 		pot[i] = atof(argv[2+i]);
 
-	fprintf(stderr, "Playing %s(%f,%f,%f,%f)\n",
-		eff->name, pot[0], pot[1], pot[2], pot[3]);
+	fprintf(stderr, "Playing %s: ",	eff->name);
+	eff->describe(pot);
 
-	eff->init(pot[0], pot[1], pot[2], pot[3]);
-	while (fread(&sample, 4, 1, stdin) == 1) {
-		UPDATE(effect_delay);
-
-		float in = process_input(sample);
-
-		float out = eff->step(in);
-
-		sample = process_output(out);
-		if (fwrite(&sample, 4, 1, stdout) != 1)
-			return 1;
+	for (;;) {
+		eff->init(pot);
+		if (make_one_noise(0, 1, eff) <= 0)
+			break;
 	}
 	return 0;
 }
