@@ -24,6 +24,7 @@
 #include "phaser.h"
 #include "discont.h"
 #include "distortion.h"
+#include "tube.h"
 
 static void magnitude_describe(float pot[4]) { fprintf(stderr, "\n"); }
 static void magnitude_init(float pot[4]) {}
@@ -41,6 +42,7 @@ struct effect {
 	EFF(echo),
 	EFF(flanger),
 	EFF(phaser),
+	EFF(tube),
 
 	/* "Helper" effects */
 	EFF(am),
