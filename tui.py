@@ -13,13 +13,15 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 SAMPLE_RATE = 48000
 CHUNK_SIZE = 1024
 EFFECTS = {
-    'flanger':    {'defaults': [60, 60, 60, 60], 'pots': ['Depth', 'Rate', 'Fback', 'Mix']},
-    'echo':       {'defaults': [30, 30, 30, 30], 'pots': ['Delay', 'Fback', 'Mix', 'Tone']},
-    'fm':         {'defaults': [25, 25, 50, 50], 'pots': ['Depth', 'Rate', 'Carr', 'Mix']},
-    'am':         {'defaults': [50, 50, 50, 50], 'pots': ['Depth', 'Rate', 'Shape', 'Mix']},
-    'phaser':     {'defaults': [30, 30, 50, 50], 'pots': ['Depth', 'Rate', 'Stage', 'Fback']},
-    'discont':    {'defaults': [80, 10, 20, 20], 'pots': ['Pitch', 'Rate', 'Blend', 'Mix']},
-    'distortion': {'defaults': [50, 60, 80, 0],  'pots': ['Drive', 'Tone', 'Level', 'Mix']},
+    'flanger':      {'defaults': [60, 60, 60, 60], 'pots': ['Depth', 'Rate', 'Fback', 'Mix']},
+    'echo':         {'defaults': [30, 30, 30, 30], 'pots': ['Delay', 'Fback', 'Mix', 'Tone']},
+    'fm':           {'defaults': [25, 25, 50, 50], 'pots': ['Depth', 'Rate', 'Carr', 'Mix']},
+    'am':           {'defaults': [50, 50, 50, 50], 'pots': ['Depth', 'Rate', 'Shape', 'Mix']},
+    'phaser':       {'defaults': [30, 30, 50, 50], 'pots': ['Depth', 'Rate', 'Stage', 'Fback']},
+    'discont':      {'defaults': [80, 10, 20, 20], 'pots': ['Pitch', 'Rate', 'Blend', 'Mix']},
+    'distortion':   {'defaults': [50, 60, 80, 0],  'pots': ['Drive', 'Tone', 'Level', 'Mix']},
+    'tube':         {'defaults': [50, 20, 0, 100], 'pots': ['Volume', 'Boost', 'LF', 'HF']},
+    'growlingbass': {'defaults': [40, 35, 0, 40],  'pots': ['Sub', 'Odd', 'Even', 'Tone']},
 }
 EFFECT_NAMES = list(EFFECTS.keys())
 
@@ -213,14 +215,19 @@ class AudioNoisePlayer:
             except: pass
     
     def send_effect(self, effect_name):
-        """Send effect change command: eN\n where N is effect index (C order)"""
-        if self.control_write and self.playing:
-            effect_idx = self.EFFECT_INDEX.get(effect_name, 0)
-            cmd = f"e{effect_idx}\n"
-            try:
-                os.write(self.control_write, cmd.encode())
-            except:
-                pass
+        """Change effect by restarting the convert process with the new effect.
+
+        Note: The C code's control protocol only supports pot changes ('p' command),
+        not runtime effect switching. So we stop and restart the pipeline."""
+        if not self.playing:
+            return
+        was_playing = self.playing
+        audio_buf = self.audio_buffer
+        self.stop()
+        self.effect = effect_name
+        self.audio_buffer = audio_buf
+        if was_playing:
+            self.start()
 
     def stream_audio(self):
         while (self.playing or self.paused) and self.proc and self.proc.stdout:
